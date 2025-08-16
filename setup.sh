@@ -6,7 +6,20 @@ custom_drive() {
   EFI_SIZE="500MiB"
   SWAP_SIZE="4GiB"
 
-  for i in $(parted /dev/sdx print | awk '/^  [0-9]+/ {print $1}' | sort -r); do
+  for swap in $(cat /proc/swaps | awk '{print $1}' | grep "$DISK"); do
+      echo "Disabling swap $swap..."
+      swapoff $swap
+  done
+
+  for part in $(lsblk -ln -o NAME,MOUNTPOINT | grep "$DISK" | awk '{print "/dev/"$1}'); do
+      mountpoint=$(lsblk -ln -o MOUNTPOINT $part)
+      if [ -n "$mountpoint" ]; then
+          echo "Unmounting $part..."
+          umount $part
+      fi
+  done
+
+  for i in $(parted -m $DISK print | awk -F: 'NR>1 {print $1}' | sort -r); do
     parted -s $DISK rm $i
   done
 
