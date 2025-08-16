@@ -3,39 +3,44 @@
 custom_drive() {
   DISK="/dev/sdx"
 
-  EFI_SIZE="1GiB"
+  EFI_SIZE="500MiB"
   SWAP_SIZE="4GiB"
 
+  for i in $(parted /dev/sdx print | awk '/^  [0-9]+/ {print $1}' | sort -r); do
+    parted -s $DISK rm $i
+  done
+
+
   # 1. Create GPT partition table
-  sudo parted -s $DISK mklabel gpt
+  parted -s $DISK mklabel gpt
 
   # 2. Create EFI System Partition
-  sudo parted -s $DISK mkpart primary fat32 1MiB $EFI_SIZE
-  sudo parted -s $DISK set 1 esp on
+  parted -s $DISK mkpart primary fat32 1MiB $EFI_SIZE
+  parted -s $DISK set 1 esp on
 
   # 3. Create Swap Partition
-  EFI_END=$(sudo parted $DISK unit MiB print | awk '/^ 1 / {print $3}' | tr -d 'MiB')
+  EFI_END=$(parted $DISK unit MiB print | awk '/^ 1 / {print $3}' | tr -d 'MiB')
   if ! [[ "$EFI_END" =~ ^[0-9]+$ ]]; then
       echo "Error: Could not get EFI partition end"
       exit 1
   fi
   SWAP_START=$(($EFI_END))
   SWAP_END=$(($SWAP_START + 4096))  # 4 GiB
-  sudo parted -s $DISK mkpart primary linux-swap ${SWAP_START}MiB ${SWAP_END}MiB
+  parted -s $DISK mkpart primary linux-swap ${SWAP_START}MiB ${SWAP_END}MiB
 
   # 4. Create Root Partition (remaining)
-  sudo parted -s $DISK mkpart primary ext4 ${SWAP_END}MiB 100%
+  parted -s $DISK mkpart primary ext4 ${SWAP_END}MiB 100%
 
   # 5. Format partitions
-  sudo mkfs.fat -F32 ${DISK}1        # EFI
-  sudo mkswap ${DISK}2                # Swap
-  sudo mkfs.ext4 ${DISK}3              # Root
+  mkfs.fat -F32 ${DISK}1        # EFI
+  mkswap ${DISK}2                # Swap
+  mkfs.ext4 ${DISK}3              # Root
 
   # 6. Enable swap
-  sudo swapon ${DISK}2
+  swapon ${DISK}2
 
   echo "✅ Partitions created:"
-  sudo parted $DISK print
+  parted $DISK print
 }
 
 check_internet() {
