@@ -6,13 +6,6 @@ custom_drive() {
   EFI_SIZE="1GiB"
   SWAP_SIZE="4GiB"
 
-  echo "⚠️ WARNING: This will erase all partitions on $DISK"
-  read -p "Type YES to continue: " CONFIRM
-  if [ "$CONFIRM" != "YES" ]; then
-      echo "Aborted."
-      exit 1
-  fi
-
   # 1. Create GPT partition table
   sudo parted -s $DISK mklabel gpt
 
@@ -21,7 +14,11 @@ custom_drive() {
   sudo parted -s $DISK set 1 esp on
 
   # 3. Create Swap Partition
-  EFI_END=$(sudo parted $DISK unit MiB print | grep "1" | awk '{print $3}' | tr -d 'MiB')
+  EFI_END=$(sudo parted $DISK unit MiB print | awk '/^ 1 / {print $3}' | tr -d 'MiB')
+  if ! [[ "$EFI_END" =~ ^[0-9]+$ ]]; then
+      echo "Error: Could not get EFI partition end"
+      exit 1
+  fi
   SWAP_START=$(($EFI_END))
   SWAP_END=$(($SWAP_START + 4096))  # 4 GiB
   sudo parted -s $DISK mkpart primary linux-swap ${SWAP_START}MiB ${SWAP_END}MiB
