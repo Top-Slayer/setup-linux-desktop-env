@@ -1,10 +1,12 @@
 #!/bin/bash
 
 custom_drive() {
-  DISK="/dev/sdx"
+  DISK="/dev/sda"
 
   EFI_SIZE="500MiB"
   SWAP_SIZE="4GiB"
+
+  SWAP_SIZE_MIB=$(numfmt --from=iec --to=si --suffix=MiB "$SWAP_SIZE" | sed 's/MiB//')
 
   for swap in $(cat /proc/swaps | awk '{print $1}' | grep "$DISK"); do
       echo "Disabling swap $swap..."
@@ -38,7 +40,7 @@ custom_drive() {
       exit 1
   fi
   SWAP_START=$(($EFI_END))
-  SWAP_END=$(($SWAP_START + 4096))  # 4 GiB
+  SWAP_END=$(($SWAP_START + $SWAP_SIZE_MIB))
   parted -s $DISK mkpart primary linux-swap ${SWAP_START}MiB ${SWAP_END}MiB
 
   # 4. Create Root Partition (remaining)
@@ -52,26 +54,26 @@ custom_drive() {
   # 6. Enable swap
   swapon ${DISK}2
 
-  echo "✅ Partitions created:"
+  echo "[O] Partitions created:"
   parted $DISK print
 }
 
 check_internet() {
   HOST="8.8.8.8"
   if ping -c 1 -W 5 $HOST >/dev/null 2>&1; then
-      echo "✅ Internet is connected"
+      echo "[O] Internet is connected"
   else
-      echo "❌ No internet connection"
+      echo "[X] No internet connection"
       exit 1
   fi
 }
 
 check_user() {
   if [ "$EUID" -ne 0 ]; then
-      echo "❌ You are not root"
+      echo "[X] You are not root"
       exit 1
   else
-      echo "✅ You are root"
+      echo "[O] You are root"
   fi
 }
 
