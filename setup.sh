@@ -19,7 +19,6 @@ custom_drive() {
   done
 
   umount -R /mnt
-  umount -R /mnt/boot
 
   for i in $(parted -m $DISK print | awk -F: 'NR>1 {print $1}' | sort -r); do
     parted -s $DISK rm $i
@@ -57,7 +56,7 @@ custom_drive() {
   echo "[O] Partitions created:"
   parted $DISK print
 
-  mount --mkdir ${DISK}1 /mnt/boot
+  mount --mkdir ${DISK}1 /mnt/boot/efi
   mount ${DISK}3 /mnt
 }
 
@@ -97,4 +96,4 @@ arch-chroot /mnt bash -c "echo 'KEYMAP=us' > /etc/vconsole.conf"
 arch-chroot /mnt bash -c "echo 'LANG=C.UTF-8' > /etc/locale.conf"
 arch-chroot /mnt bash -c "echo '0xC' > /etc/hostname"
 arch-chroot /mnt mkinitcpio -P
-arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/mnt/boot --bootloader-id=GRUB
+arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
