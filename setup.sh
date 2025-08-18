@@ -61,6 +61,9 @@ custom_drive() {
 
   echo "[O] Partitions created:"
   parted $DISK print
+
+  mount --mkdir ${DISK}1 /mnt/boot
+  mount ${DISK}3 /mnt
 }
 
 check_internet() {
@@ -83,9 +86,15 @@ check_user() {
 }
 
 # loadkeys us
-#
+
+
 check_user
 check_internet
 custom_drive
+
+pacstrap -K /mnt base linux linux-firmware
+genfstab -U /mnt >> /mnt/etc/fstab
+arch-chroot /mnt
+echo hello
 
 
