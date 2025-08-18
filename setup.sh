@@ -56,7 +56,7 @@ custom_drive() {
   echo "[O] Partitions created:"
   parted $DISK print
 
-  mount --mkdir ${DISK}1 /mnt/boot/efi
+  mount --mkdir ${DISK}1 /mnt/boot
   mount ${DISK}3 /mnt
 }
 
@@ -96,4 +96,14 @@ arch-chroot /mnt bash -c "echo 'KEYMAP=us' > /etc/vconsole.conf"
 arch-chroot /mnt bash -c "echo 'LANG=C.UTF-8' > /etc/locale.conf"
 arch-chroot /mnt bash -c "echo '0xC' > /etc/hostname"
 arch-chroot /mnt mkinitcpio -P
-arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
+
+if [ -d /sys/firmware/efi ]; then
+  echo "System is running in UEFI mode."
+  arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
+else
+  echo "System is running in Legacy BIOS mode."
+  arch-chroot /mnt grub-install --target=i386-pc /dev/sda
+fi
+
+grub-mkconfig -o /boot/grub/grub.cfg
+reboot
