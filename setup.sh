@@ -6,7 +6,12 @@ custom_drive() {
   EFI_SIZE="500MiB"
   SWAP_SIZE="4GiB"
 
-  SWAP_SIZE_MIB=$(numfmt --from=iec --to=si --suffix=MiB "$SWAP_SIZE" | sed 's/MiB//')
+  if [[ "$SWAP_SIZE" =~ ^([0-9]+)GiB$ ]]; then
+      SWAP_SIZE_MIB=$(( ${BASH_REMATCH[1]} * 1024 ))
+  else
+      echo "[X] Error: SWAP_SIZE must be in GiB (e.g. 2GiB, 4GiB, 8GiB)"
+      exit 1
+  fi
 
   for swap in $(cat /proc/swaps | awk '{print $1}' | grep "$DISK"); do
       echo "Disabling swap $swap..."
