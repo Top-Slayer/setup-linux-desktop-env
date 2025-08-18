@@ -94,7 +94,13 @@ custom_drive
 
 pacstrap -K /mnt base linux linux-firmware
 genfstab -U /mnt >> /mnt/etc/fstab
-arch-chroot /mnt
-echo hello
 
+arch-chroot /mnt ln -sf /usr/share/zoneinfo/Region/City /etc/localtime
+arch-chroot /mnt hwclock --systohc
+arch-chroot /mnt locale-gen
+arch-chroot /mnt bash -c "echo 'KEYMAP=us' > /etc/vconsole.conf"
+arch-chroot /mnt bash -c "echo 'LANG=C.UTF-8' > /etc/locale.conf"
+arch-chroot /mnt bash -c "echo '0xC' > /etc/hostname"
+arch-chroot /mnt mkinitcpio -P
 
+grub-install --target=x86_64-efi --efi-directory=esp --bootloader-id=GRUB
