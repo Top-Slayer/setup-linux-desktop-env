@@ -106,4 +106,5 @@ else
 fi
 
 grub-mkconfig -o /boot/grub/grub.cfg
+umount -R /mnt
 reboot
