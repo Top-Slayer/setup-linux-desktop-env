@@ -18,13 +18,8 @@ custom_drive() {
       swapoff $swap
   done
 
-  for part in $(lsblk -ln -o NAME,MOUNTPOINT | grep "$DISK" | awk '{print "/dev/"$1}'); do
-      mountpoint=$(lsblk -ln -o MOUNTPOINT $part)
-      if [ -n "$mountpoint" ]; then
-          echo "Unmounting $part..."
-          umount $part
-      fi
-  done
+  umount -R /mnt
+  umount -R /mnt/boot
 
   for i in $(parted -m $DISK print | awk -F: 'NR>1 {print $1}' | sort -r); do
     parted -s $DISK rm $i
