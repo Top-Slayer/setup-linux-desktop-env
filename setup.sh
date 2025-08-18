@@ -103,4 +103,4 @@ arch-chroot /mnt bash -c "echo 'LANG=C.UTF-8' > /etc/locale.conf"
 arch-chroot /mnt bash -c "echo '0xC' > /etc/hostname"
 arch-chroot /mnt mkinitcpio -P
 
-grub-install --target=x86_64-efi --efi-directory=esp --bootloader-id=GRUB
+grub-install --target=x86_64-efi --efi-directory=/mnt/boot --bootloader-id=GRUB
