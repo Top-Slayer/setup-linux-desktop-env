@@ -92,7 +92,7 @@ check_user
 check_internet
 custom_drive
 
-pacstrap -K /mnt base linux linux-firmware
+pacstrap -K /mnt base linux linux-firmware sudo networkmanager grub efibootmgr
 genfstab -U /mnt >> /mnt/etc/fstab
 
 arch-chroot /mnt ln -sf /usr/share/zoneinfo/Region/City /etc/localtime
@@ -102,5 +102,4 @@ arch-chroot /mnt bash -c "echo 'KEYMAP=us' > /etc/vconsole.conf"
 arch-chroot /mnt bash -c "echo 'LANG=C.UTF-8' > /etc/locale.conf"
 arch-chroot /mnt bash -c "echo '0xC' > /etc/hostname"
 arch-chroot /mnt mkinitcpio -P
-
-grub-install --target=x86_64-efi --efi-directory=/mnt/boot --bootloader-id=GRUB
+arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/mnt/boot --bootloader-id=GRUB
